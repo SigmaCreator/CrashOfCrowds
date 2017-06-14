@@ -14,7 +14,7 @@ class Person:
         sb = []
         for p in self.path:
             sb.append(p)
-        print(sb)
+        return sb
 
     def getFirstPos(self):
         return self.path[0]
@@ -22,7 +22,27 @@ class Person:
     def getLastPos(self):
         return self.path[len(self.path)-1]
 
+class Frame:
+    frameCount = 0
+
+    def __init__(self, id):
+        self.id = id
+        self.people = []
+        Frame.frameCount += 1
+
+    def append(self, personID, position):
+        idSet = set([p[0] for p in self.people])
+
+        if personID not in idSet:
+            self.people.append((personID, position))
+            #print("Adicionou pessoa", personID, "no frame", self.id)
+
+    def fetch(self):
+        return self.people
+
 people = []
+
+frames = []
 
 ratio = 0
 
@@ -31,8 +51,13 @@ threshold = 0
 def printPeople():
     count = 0
     for p in people:
-        print("Pessoa", count, ": ", p.toString())
+        print("Pessoa", count, ":", p.toString())
         count += 1
+
+def printFrames():
+    for frame in frames:
+        print("Frame:", frame.id)
+        print("People:", frame.fetch())
 
 def readFile():
 
@@ -42,7 +67,10 @@ def readFile():
         threshold = 1/ratio
 
         for line in data[1:len(data)-1]:
+
             path = []
+
+            person = Person(path)
 
             content = line.rsplit()
 
@@ -53,20 +81,26 @@ def readFile():
             for pos in aux:
                 if pos != "":
                     m = re.findall(r'([0-9]+)', pos)
-                    x = float(m[0])/ratio
-                    y = float(m[1])/ratio
+                    x = float(m[0])# /ratio
+                    y = float(m[1])# /ratio
                     t = int(m[2])
 
-                    path.append((x,y,t))
+                    person.addPos((x,y,t))
 
-            print(path)
-            person = Person(path)
+                    newFrame = True
+
+                    for frame in frames:
+                        if frame.id == t:
+                            frame.append(len(people),(x,y))
+                            newFrame = False
+
+
+                    if newFrame:
+                        shinFureimu = Frame(t)
+                        shinFureimu.append(len(people),(x,y))
+                        frames.append(shinFureimu)
 
             people.append(person)
 
 def sub(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
-
-readFile()
-
-# printPeople()

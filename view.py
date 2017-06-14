@@ -1,79 +1,201 @@
 from structure import *
 
-import pygame
-from pygame.locals import *
+import OpenGL
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GLUT import *
 
 readFile()
 
 printPeople()
 
+printFrames()
 
-vertices = (
-    (1,-1,-1),
-    (1,1,-1),
-    (-1,1,-1),
-    (-1,-1,-1),
-    (1,-1,1),
-    (1,1,1),
-    (-1,-1,1),
-    (-1,1,1)
-)
+SENS_ROT = 5.0
+SENS_OBS = 10.0
+SENS_TRANSL = 30.0
 
-edges = (
-    (0,1),
-    (0,3),
-    (0,4),
-    (2,1),
-    (2,3),
-    (2,7),
-    (6,3),
-    (6,4),
-    (6,7),
-    (5,1),
-    (5,4),
-    (5,7),
-)
+rotX, rotY, rotX_ini, rotY_ini = 0, 0, 0, 0
+obsX, obsY, obsZ = 200, 200, 200
+obsX_ini, obsY_ini, obsZ_ini = 0, 0, 0
+fAspect = 1
+angle = 44
+x_ini, y_ini, bot = 0, 0, 0
 
-def cube():
+countFrame = 0
 
+
+def watcher():
+
+	glMatrixMode(GL_MODELVIEW)
+
+	glLoadIdentity()
+
+	glTranslatef(-obsX,-obsY,-obsZ)
+
+	glRotatef(rotX,1,0,0)
+
+	glRotatef(rotY,0,1,0)
+
+	gluLookAt(0.0,80.0,200.0, 0.0,0.0,0.0, 0.0,1.0,0.0)
+
+
+def view():
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(angle,fAspect,0.5,50000)
+    watcher()
+
+
+def ground():
+
+    glColor3f(1, 0, 1)
+    glLineWidth(3)
     glBegin(GL_LINES)
 
-    for edge in edges:
-        for vertex in edge:
-            glVertex3fv(vertices[vertex])
+    for z in range(-1000, 1000, 10):
+        glVertex3f(-1000, -0.1, z)
+        glVertex3f(1000, -0.1, z)
+
+    for x in range(-1000, 1000, 10):
+        glVertex3f(x, -0.1, -1000)
+        glVertex3f(x, -0.1, 1000)
 
     glEnd()
+    glLineWidth(1)
 
-def main():
 
-    pygame.init()
+def drawScene():
 
-    display = (800,600)
-    pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
 
-    gluPerspective(45,(display[0]/display[1]),0.1,50.0)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-    glTranslatef(0,0,-5)
+    view()
 
-    glRotatef(0,0,0,0)
+    ground()
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+    glColor3f(0.0, 0.0, 1.0)
 
-        glRotate(1, 3, 1, 1)
+    for person in frames[countFrame].people:
 
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        glPushMatrix()
 
-        cube()
+        glTranslatef(person[1][0], 28, person[1][1])
 
-        pygame.display.flip()
+        glRotatef(-90,1,0,0)
 
-        pygame.time.wait(10)
+        glutWireCone(15,30,20,10)
 
-main()
+        glPopMatrix()
+
+    glFlush()
+
+
+
+
+def window(w, h):
+
+    global fAspect
+
+    if h == 0 :
+        h = 1
+
+    glViewport(0, 0, w, h)
+
+    fAspect = w / h
+
+    view()
+
+
+def mouse(button, state, x, y):
+
+    global rotX_ini, rotY_ini, obsX_ini, obsY_ini, obsZ_ini, x_ini, y_ini, bot
+
+    if state == GLUT_DOWN :
+        x_ini = x
+        y_ini = y
+        obsX_ini = obsX
+        obsY_ini = obsY
+        obsZ_ini = obsZ
+        rotX_ini = rotX
+        rotY_ini = rotY
+        bot = button
+
+    else :
+        bot = -1
+
+
+def manageMovement(x, y):
+
+    global obsX, obsY, obsZ, rotX, rotY
+
+    if bot == GLUT_LEFT_BUTTON :
+        deltax = x_ini - x
+        deltay = y_ini - y
+
+        rotY = rotY_ini - deltax/SENS_ROT
+        rotX = rotX_ini - deltay/SENS_ROT
+
+
+    elif bot == GLUT_RIGHT_BUTTON :
+        deltaz = y_ini - y
+        obsZ = obsZ_ini + deltaz/SENS_OBS
+
+    elif bot == GLUT_MIDDLE_BUTTON :
+        deltax = x_ini - x
+        deltay = y_ini - y
+
+        obsX = obsX_ini + deltax/SENS_TRANSL
+        obsY = obsY_ini - deltay/SENS_TRANSL
+
+    watcher()
+    glutPostRedisplay()
+
+
+def framing():
+
+    global countFrame
+
+    countFrame += 1
+
+    if countFrame == Frame.frameCount - 1:
+        countFrame = 0
+
+    glutPostRedisplay()
+
+if __name__ == '__main__':
+
+    glutInit()
+
+    glutInitDisplayMode(GLUT_RGB)
+
+    glutInitWindowPosition(5, 5)
+
+    glutInitWindowSize(800,600)
+
+    glutCreateWindow("Teste")
+
+    glEnable(GL_DEPTH_TEST)
+
+    glutDisplayFunc(drawScene)
+
+    glutIdleFunc(framing)
+
+    glutReshapeFunc(window)
+
+    glutMotionFunc(manageMovement)
+
+    glutMouseFunc(mouse)
+
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+    glLineWidth(2.0)
+
+    # glutIdleFunc(drawScene)
+
+    # glutKeyboardFunc()
+
+    # glutSpecialFunc()
+
+    glutMainLoop()
