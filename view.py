@@ -54,13 +54,13 @@ def ground():
     glLineWidth(3)
     glBegin(GL_LINES)
 
-    for z in range(-1000, 1000, 10):
-        glVertex3f(-1000, -0.1, z)
-        glVertex3f(1000, -0.1, z)
+    for z in range(-2000, 2000, 10):
+        glVertex3f(-2000, -0.1, z)
+        glVertex3f(2000, -0.1, z)
 
-    for x in range(-1000, 1000, 10):
-        glVertex3f(x, -0.1, -1000)
-        glVertex3f(x, -0.1, 1000)
+    for x in range(-2000, 2000, 10):
+        glVertex3f(x, -0.1, -2000)
+        glVertex3f(x, -0.1, 2000)
 
     glEnd()
     glLineWidth(1)
@@ -91,8 +91,6 @@ def drawScene():
         glPopMatrix()
 
     glFlush()
-
-
 
 
 def window(w, h):
@@ -164,6 +162,7 @@ def framing():
         countFrame = 0
 
     glutPostRedisplay()
+
 
 if __name__ == '__main__':
 
