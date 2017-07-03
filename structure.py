@@ -1,11 +1,38 @@
 import re
 
+class Auxin:
+	def __init__(self, x, y, name):
+		self.x = x
+		self.y = y
+		self.name = name
+		self.minDistance = 200
+		self.agent = None
+		self.taken = False
+		#self.cell = None
+	def reset(self):
+		self.minDistance = 200
+		self.agent = None
+		self.taken = False
+
+class Cell:
+	def __init__(self, x, y, name):
+		self.x = x
+		self.y = y
+		self.name = name
+		self.auxins = []
+		self.people = []
+	def add_auxin(self, auxin):
+		self.auxins.append(auxin)
+	def reset(self):
+		self.people = []
+
 class Person:
     personCount = 0
 
     def __init__(self, path):
         self.path = path
         Person.personCount += 1
+	self.cell = None
 
     def addPos(self, position):
         self.path.append(position)
@@ -59,9 +86,9 @@ def printFrames():
         print("Frame:", frame.id)
         print("People:", frame.fetch())
 
-def readFile():
+def readFile(path):
 
-    with open("Paths_D.txt") as file:
+    with open(path) as file:
         data = file.readlines()
         ratio = float(data[0].replace("[","").replace("]",""))
         threshold = 1/ratio
@@ -81,8 +108,8 @@ def readFile():
             for pos in aux:
                 if pos != "":
                     m = re.findall(r'([0-9]+)', pos)
-                    x = float(m[0])# /ratio
-                    y = float(m[1])# /ratio
+                    x = float(m[0])*100/ratio
+                    y = float(m[1])*100/ratio
                     t = int(m[2])
 
                     person.addPos((x,y,t))
