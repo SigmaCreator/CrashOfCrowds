@@ -78,7 +78,7 @@ threshold = 0
 def printPeople():
     count = 0
     for p in people:
-        print("Pessoa", count, ":", p.toString())
+        print("Person", count, ":", p.toString())
         count += 1
 
 def printFrames():

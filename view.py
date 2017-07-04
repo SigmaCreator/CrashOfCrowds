@@ -27,6 +27,10 @@ countFrame = 0
 
 cells = []
 
+collisions = 0
+
+auxset = set([])
+
 def watcher():
 
 	glMatrixMode(GL_MODELVIEW)
@@ -95,6 +99,7 @@ def drawScene():
 
     
     takencells = []
+
     for person in frames[countFrame].people:
 	x = person[1][0]
 	y = person[1][1]
@@ -104,7 +109,8 @@ def drawScene():
 	cell.people.append(person)
 	p.cell = cell
 	takencells.append(cell)
-
+    
+    colls = []
     for person in frames[countFrame].people:
 
         glPushMatrix()
@@ -121,11 +127,14 @@ def drawScene():
 			if person[0]!=q[0]:
 				if euc_dist((x,y), q[1]) <= 20:
 					glColor3f(1, 0, 0)
+					colls.append((person[0], q[0]))
 					break
 
         glutWireCone(10,30,20,10)
 
         glPopMatrix()
+    
+    sum_collisions(set(colls))    
 
     for cell in takencells:	
 	cell.reset()
@@ -134,6 +143,13 @@ def drawScene():
 
 	
     #tm.sleep(0.05)
+
+def sum_collisions(colls):
+	global auxset
+	global collisions
+	diff = colls.difference(auxset)
+	collisions = collisions + len(diff)/2
+	auxset = colls
 
 def getCoI(cell):
 	coi = [cell]
@@ -255,7 +271,7 @@ def framing():
     countFrame += 1
 
     if countFrame == Frame.frameCount - 1:
-        countFrame = 0
+	sys.exit('Collisions: {}'.format(collisions))
 
     glutPostRedisplay()
 
